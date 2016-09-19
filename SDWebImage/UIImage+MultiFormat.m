@@ -16,7 +16,25 @@
 #endif
 
 @implementation UIImage (MultiFormat)
-
+//图片等比例压缩
++ (UIImage *)compressImageWith:(UIImage *)image {
+    float imageWidth = image.size.width;
+    float imageHeight = image.size.height;
+    float width = 640;
+    float height = image.size.height/(image.size.width/width);
+    float widthScale = imageWidth / width;
+    float heightScale = imageHeight / height;
+    UIGraphicsBeginImageContext(CGSizeMake(width, height));
+    if (widthScale > heightScale) {
+        [image drawInRect:CGRectMake(0, 0, imageWidth/heightScale, height)];
+    }else {
+        [image drawInRect:CGRectMake(0, 0, width, imageHeight/widthScale)];
+    }
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    return newImage;
+    
+}
 + (UIImage *)sd_imageWithData:(NSData *)data {
     if (!data) {
         return nil;
@@ -35,6 +53,10 @@
 #endif
     else {
         image = [[UIImage alloc] initWithData:data];
+        //gavin 2016年9月13日添加图片压缩
+        if (data.length/1024 > 128) {
+            image = [self compressImageWith:image];
+        }
         UIImageOrientation orientation = [self sd_imageOrientationFromImageData:data];
         if (orientation != UIImageOrientationUp) {
             image = [UIImage imageWithCGImage:image.CGImage
